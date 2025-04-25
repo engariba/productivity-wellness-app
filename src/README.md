@@ -42,12 +42,12 @@ Follow these steps to set up and run the application:
 
 ### 2. Install Dependencies
 Ensure you have Python installed, then run:
-```
+```bash
 pip install -r requirements.txt
 ```
 
 ### 3. Run the Application
-```
+```bash
 python app.py
 ```
 

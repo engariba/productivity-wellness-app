@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <header>
+        <h1>Dashboard</h1>
+    </header>
+    <main>
+        <section class="affirmation">
+            <h2>Today's Affirmation: {{ affirmation }}</h2>
+        </section>
+        <section class="tasks">
+            <h3>Task List</h3>
+            <ul>
+                {% for task in tasks %}
+                <li>
+                    {{ task.description }} - 
+                    {% if task.completed %}✔ Completed{% else %}
+                    <a href="/complete_task/{{ task.id }}">Mark as Completed</a>{% endif %}
+                    <a href="/delete_task/{{ task.id }}">Delete</a>
+                </li>
+                {% endfor %}
+            </ul>
+            <h3>Add a Task</h3>
+            <form action="/add_task" method="post">
+                <input type="text" name="task" placeholder="New task">
+                <button type="submit">Add</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

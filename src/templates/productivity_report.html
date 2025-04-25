@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Report</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <header>
+        <h1>Productivity Report</h1>
+    </header>
+    <main>
+        {% if graph_json %}
+        <!-- Chart Container -->
+        <div id="chart"></div>
+        <script>
+            // Debugging: Log the raw graph JSON in the console for verification
+            console.log("Graph JSON:", {{ graph_json | tojson | safe }});
+        
+            // Parse the graph data and render the bar chart
+            const graphData = JSON.parse({{ graph_json | tojson | safe }});
+            Plotly.newPlot('chart', graphData.data, graphData.layout, { responsive: true });
+        </script>
+        
+        {% else %}
+        <!-- Fallback for Empty Data -->
+        <p>No tasks found. Add tasks to generate the productivity report.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

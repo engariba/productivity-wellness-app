@@ -1,0 +1,169 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f9;
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background-color: #007BFF;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+/* Navigation */
+nav {
+    background-color: #0056b3;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+nav a:hover {
+    color: #ffdd57;
+}
+
+/* Main Content */
+main {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Section Styling */
+section {
+    margin-bottom: 30px;
+}
+section h2, h3 {
+    color: #333;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #007BFF;
+    padding-bottom: 5px;
+}
+
+/* Forms */
+form {
+    margin: 20px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+input, button {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    font-size: 1rem;
+}
+input:focus {
+    border-color: #007BFF;
+    box-shadow: 0 0 3px #007BFF;
+}
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Lists */
+ul {
+    list-style: none;
+    padding: 0;
+}
+ul li {
+    background: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s;
+}
+ul li:hover {
+    background: #e6f7ff;
+}
+
+/* Progress Bar for Visualizing Goals (Optional Addition) */
+.progress-bar {
+    background: #e9ecef;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    height: 20px;
+}
+.progress-bar-fill {
+    background: #007BFF;
+    height: 100%;
+    transition: width 0.5s;
+    text-align: right;
+    color: white;
+    padding-right: 5px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+}
+
+/* Footer (Optional if you have one) */
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #0056b3;
+    color: white;
+    font-size: 0.9rem;
+}
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    z-index: 1000;
+}
+
+form label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.progress-bar-fill {
+    width: var(--progress-width, 0%);
+    height: 100%;
+    background-color: #007BFF;
+    text-align: right;
+    color: white;
+    padding-right: 5px;
+    line-height: 20px;
+    border-radius: 20px;
+    transition: width 0.3s ease-in-out;
+}
