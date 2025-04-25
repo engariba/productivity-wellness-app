@@ -1,56 +1,68 @@
-from flask import Flask, render_template, request, redirect, url_for
+# Flask imports
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+
+# Flask extensions
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+
+# Scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import jsonify  # Import for returning JSON data (optional)
-from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime
-import plotly.express as px
-import json
-import os
-import random
-import plotly
-import requests
-from datetime import datetime
-from datetime import timedelta
-from sqlalchemy import extract
-import random
-from flask import Flask, render_template
+
+# SQLAlchemy utilities
 from sqlalchemy import extract, and_
-from flask import Flask, render_template, request, redirect, url_for, session
-from datetime import datetime
-from flask import flash
+
+# Standard libraries
+from datetime import datetime, timedelta
+import os
+import json
+import random
+
+# Third-party libraries
+import plotly.express as px
+import requests
 
 
 
+# Initialize the Flask application
 app = Flask(__name__)
+
 app.secret_key = 'your-secret-key-here' 
+
+# Define the base directory for the application
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Configure the SQLite database URI (database will be located in the "instance" folder)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "app.db")}'
 
 
 # Database configuration
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize the database object and migration system
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Models
+#-------------------------------------- Define the database models------------------------------------------------#
+
+# Task model: Represents a to-do task with a description, completion status, and date
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)
     completed = db.Column(db.Boolean, default=False)
     date = db.Column(db.Date, nullable=False)
 
-
+# Affirmation model: Represents a positive affirmation message
 class Affirmation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.String(200), nullable=False)
 
+# WaterLog model: Tracks water intake with timestamp and amount
 class WaterLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=db.func.now())
     amount = db.Column(db.Integer, nullable=False)
 
+# Expense model: Tracks financial expenses with a description, amount, category, and timestamp
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)
@@ -60,20 +72,23 @@ class Expense(db.Model):
 
     category = db.relationship('ExpenseCategory')
 
+# ExpenseCategory model: Represents a category for expenses (e.g., food, rent)
 class ExpenseCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     color = db.Column(db.String(7))  # Hex color code
 
+# Budget model: Represents a budget for a specific category, month, and year
 class Budget(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     category_id = db.Column(db.Integer, db.ForeignKey('expense_category.id'))
     amount = db.Column(db.Float, nullable=False)
     month = db.Column(db.Integer, nullable=False)
     year = db.Column(db.Integer, nullable=False)
-
+# Establish relationship with the ExpenseCategory model
     category = db.relationship('ExpenseCategory')
 
+# Activity model: Tracks physical activities with type, duration, and date
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     activity_type = db.Column(db.String(100), nullable=False)
@@ -81,9 +96,12 @@ class Activity(db.Model):
     date = db.Column(db.Date, nullable=False)
 
 
-# Routes
+
+#------------------------------------------------- Define Routes-----------------------------------------------------#
+
 @app.route('/')
-def home():
+def home(): #Route to display tasks and random affirmations on dashboard#
+
     today = datetime.today().date()
     tasks = Task.query.filter(Task.date == today).all()
     affirmations = Affirmation.query.all()
@@ -91,9 +109,10 @@ def home():
 
     return render_template('dashboard.html', tasks=tasks, affirmation=daily_affirmation)
 
-
+#------------------------------------------------Route to add task-----------------------------------------------------#
 @app.route('/add_task', methods=['POST'])
-def add_task():
+def add_task(): 
+
     description = request.form.get('description')
     date_str = request.form.get('date')
 
@@ -110,11 +129,11 @@ def add_task():
     db.session.commit()
     return redirect(url_for('calendar_view'))
 
-
+#------------------------Route to Mark a task as completed and return to the same page----------------------------------#
 
 @app.route('/complete_task/<int:task_id>')
 def complete_task(task_id):
-    """Mark a task as completed and return to the same page"""
+
     task = Task.query.get(task_id)
     if task:
         task.completed = True
@@ -122,6 +141,7 @@ def complete_task(task_id):
     # Stay on the task manager page after marking as complete
     return redirect(request.referrer or url_for('task_manager'))
 
+#------------------------------------------Route to Delete a task---------------------------------------------------#
 @app.route('/delete_task/<int:task_id>')
 def delete_task(task_id):
     """Delete a task and redirect to the previous page"""
@@ -132,8 +152,7 @@ def delete_task(task_id):
     return redirect(request.referrer or url_for('task_manager'))
 
 
-
-
+#--------------------------------------Route for Water intake------------------------------------------------------#
 @app.route('/water_intake', methods=['GET', 'POST'])
 def water_intake():
     daily_goal = 2000
@@ -155,6 +174,7 @@ def water_intake():
                          total_intake=total_intake, 
                          daily_goal=daily_goal)
 
+#------------------------------------Route to reset Water Intake------------------------------------------------#
 @app.route('/reset_water', methods=['POST'])
 def reset_water():
     # Delete today's records from DATABASE (not session)
@@ -165,7 +185,8 @@ def reset_water():
     return redirect(url_for('water_intake'))
 
 
-# Function to calculate category totals
+#-------------------------------Function to calculate category totals for expenses----------------------------------#
+ 
 def calculate_category_totals(budgets, current_month, current_year):
     category_totals = {}
     for budget in budgets:
@@ -177,6 +198,7 @@ def calculate_category_totals(budgets, current_month, current_year):
         category_totals[budget.category_id] = sum(exp.amount for exp in monthly_expenses)
     return category_totals
 
+#------------------------------------------------Route for expenses---------------------------------------------------#
 @app.route('/expenses', methods=['GET', 'POST'])
 def expenses():
     today = datetime.today()
@@ -273,6 +295,7 @@ def expenses():
         current_year=current_year
     )
 
+#----------------------------------------Route for Setting Budget-------------------------------------------------#
 @app.route('/set_budget', methods=['POST'])
 def set_budget():
     category_id = request.form.get('category_id')
@@ -300,6 +323,7 @@ def set_budget():
     db.session.commit()
     return redirect(url_for('expenses'))
 
+#-------------------------------------------Route for Adding Expense-------------------------------------------------#
 @app.route('/add_expense', methods=['POST'])
 def add_expense():
     description = request.form.get('description')
@@ -329,6 +353,7 @@ def add_expense():
 
     return redirect(url_for('expenses'))
 
+#----------------------------------------Route for Deleting an Expense-------------------------------------------------#
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 def delete_expense(expense_id):
     expense = Expense.query.get_or_404(expense_id)
@@ -336,6 +361,7 @@ def delete_expense(expense_id):
     db.session.commit()
     return redirect(url_for('expenses'))
 
+#----------------------------------------Route for Budget Categories-------------------------------------------------#
 @app.route('/init_categories')
 def init_categories():
     categories = [
@@ -356,7 +382,7 @@ def init_categories():
     return redirect(url_for('expenses'))
 
 
-
+#------------------------------------------------Route for Affirmations-------------------------------------------------#
 @app.route('/affirmations', methods=['GET', 'POST'])
 def affirmations():
     if request.method == 'POST':
@@ -370,7 +396,7 @@ def affirmations():
     return render_template('affirmations.html', affirmations=all_affirmations)
 
 
-
+#------------------------------------Route for Generating Affirmations(API included)--------------------------------------------#
 @app.route('/generate_affirmation')
 def generate_affirmation():
     response = requests.get('https://www.affirmations.dev/')
@@ -384,7 +410,7 @@ def generate_affirmation():
             return redirect(url_for('affirmations'))
     return "Failed to generate affirmation", 500
 
-
+#------------------------------Route for Generating Randomn Affirmations---------------------------------------#
 @app.route('/get_affirmation')
 def get_affirmation():
     affirmations = Affirmation.query.all()
@@ -395,24 +421,8 @@ def get_affirmation():
 
 from flask import jsonify  # For optional JSON responses
 
-@app.route('/activities', methods=['GET', 'POST'])
-def activities():
-    if request.method == 'POST':
-        activity_type = request.form.get('activity_type')
-        duration = request.form.get('duration')
-        date = request.form.get('date')
-        if activity_type and duration and date:
-            new_activity = Activity(
-                activity_type=activity_type,
-                duration=float(duration),
-                date=datetime.strptime(date, "%Y-%m-%d").date()
-            )
-            db.session.add(new_activity)
-            db.session.commit()
-            return redirect(url_for('activities'))
-    all_activities = Activity.query.order_by(Activity.date.desc()).all()
-    return render_template('activities.html', activities=all_activities)
 
+#------------------------------Route for Displaying calendar with tasks -------------------------------------------------#
 @app.route('/calendar')
 def calendar_view():
     tasks = Task.query.filter(Task.completed == False).all()
@@ -432,7 +442,7 @@ def calendar_view():
     return render_template('calendar.html', task_map=task_map, events=events)
 
 
-
+#-------------------------------Route Generates productivity charts based on task data----------------------------------#
 @app.route('/productivity_report')
 def productivity_report():
     """Generate productivity charts with REAL user data"""
@@ -459,7 +469,7 @@ def productivity_report():
         Task.date >= start_of_month
     ).count()
 
-    # Chart 1: Completion Status
+    # Chart 1: Completion Status (Marking Tasks as Either Completed or Pending)
     fig1 = {
         'data': [{
             'x': ['Completed', 'Pending'],
@@ -475,7 +485,7 @@ def productivity_report():
         }
     }
 
-    # Chart 2: Completion Over Time
+    # Chart 2: Tasks Completion Over Time
     fig2 = {
         'data': [{
             'x': ['Today', 'This Week', 'This Month'],
@@ -500,7 +510,7 @@ def productivity_report():
         chart2=fig2
     )
 
-
+#------------------------------------Route Displays tasks filtered by time period.---------------------------------------#
 @app.route('/task_manager')
 def task_manager():
     """Display tasks filtered by Today, Week, Month, or All."""
@@ -522,12 +532,8 @@ def task_manager():
     return render_template('task_manager.html', tasks=tasks, filter_by=filter_by)
 
 
-
-import random
-from flask import Flask, render_template, request
-
-
-
+#-----------------------------Route Fetches random workout suggestions based on a muscle group---------------------#
+# API Key for API Ninjas service
 API_NINJAS_KEY = 'jwxOJEhMmeMBb65wq4Jj7Q==JFoavdqAGgs2zmah'
 
 @app.route('/workouts', methods=['GET', 'POST'])
@@ -554,7 +560,7 @@ def workouts():
 
     return render_template('workouts.html', workout=None)
 
-
+#-----------------------------------Route Logs and tracks meals, calories, and protein.-------------------------------#
 # Default nutrition goals
 DEFAULT_GOALS = {
     'calories': 2000,
@@ -570,36 +576,51 @@ def nutrition():
     
     # Handle form submission
     if request.method == 'POST':
+        # Check if it's a reset request
+        if request.form.get('_method') == 'DELETE':
+            session['meals'] = []
+            session.modified = True
+            flash('Nutrition log has been reset', 'success')
+            return redirect(url_for('nutrition'))
+        
+        # Handle food addition
+        food_name = request.form.get('food_name')
+        calories = int(request.form.get('calories', 0))
+        protein = int(request.form.get('protein', 0))
+        meal_type = request.form.get('meal_type')
+        
         session['meals'].append({
-            'food': request.form.get('food_name'),
-            'calories': int(request.form.get('calories', 0)),
-            'protein': int(request.form.get('protein', 0)),
-            'meal_type': request.form.get('meal_type'),
+            'food': food_name,
+            'calories': calories,
+            'protein': protein,
+            'meal_type': meal_type,
             'time': datetime.now().strftime("%H:%M")
         })
-        session.modified = True  # Force session save
+        session.modified = True
+        flash('Food item added successfully!', 'success')
         return redirect(url_for('nutrition'))
     
     # Calculate totals
     totals = {
-        'calories': sum(m['calories'] for m in session['meals']),
-        'protein': sum(m['protein'] for m in session['meals'])
+        'calories': sum(m['calories'] for m in session.get('meals', [])),
+        'protein': sum(m['protein'] for m in session.get('meals', []))
     }
     
     return render_template('nutrition.html',
-                        meals=session['meals'],
-                        totals={
-                            'calories': sum(m['calories'] for m in session['meals']),
-                            'protein': sum(m['protein'] for m in session['meals'])
-                        },
-                        goals={'calories': 2000, 'protein': 150})
+                        meals=session.get('meals', []),
+                        totals=totals,
+                        goals=session.get('goals', {'calories': 2000, 'protein': 150}))
 
-@app.route('/reset_nutrition')
+
+#--------------------------------------------Route Clears all tracked meals.-------------------------------------------#
+@app.route('/reset_nutrition', methods=['POST'])
 def reset_nutrition():
     session['meals'] = []
     session.modified = True
+    flash('Nutrition log has been reset', 'success')
     return redirect(url_for('nutrition'))
 
+#--------------------------------------- Background Scheduler for periodic reminders-----------------------------------#
 # Schedule periodic reminders
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -615,8 +636,6 @@ scheduler.start()
 # Shut down the scheduler when the app exits
 import atexit
 atexit.register(lambda: scheduler.shutdown())
-
-import random
 
 def send_reminder():
     messages = [

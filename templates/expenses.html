@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %} <!-- Inherit from the base HTML template -->
 
 {% block title %}Expense Tracker{% endblock %}
 
@@ -8,7 +8,7 @@
         💰 Expense Tracker
     </h1>
     
-    <!-- Budget Setting Form -->
+    <!------------------------ Budget Setting Form ------------------------------>
     <div class="budget-section">
         <h2>Monthly Budget</h2>
         <form method="POST" action="{{ url_for('set_budget') }}">
@@ -22,7 +22,7 @@
             <button type="submit">Set Budget</button>
         </form>
         
-        <!-- Budget Progress Bars -->
+        <!-------------------------------- Budget Progress Bars ----------------------------------->
         <div class="budget-progress">
             <h3>Budget Progress</h3>
             {% for budget in budgets %}
@@ -31,14 +31,14 @@
                     <span>{{ budget.category.name }}</span>
                     <span>${{ "%.2f"|format(budget.amount) }} budget</span>
                 </div>
-                {% set spent = category_totals.get(budget.category_id, 0) %}
+                {% set spent = category_totals.get(budget.category_id, 0) %} <!-- Get amount spent for the category -->
                 <div class="progress-bar">
                     <div class="progress-fill 
                         {% if spent > budget.amount %}over-budget
                         {% elif spent > budget.amount * 0.75 %}near-budget
                         {% endif %}" 
                         style="width: {{ (spent / budget.amount * 100) if budget.amount > 0 else 0 }}%">
-                        ${{ "%.2f"|format(spent) }} / ${{ "%.2f"|format(budget.amount) }}
+                        ${{ "%.2f"|format(spent) }} / ${{ "%.2f"|format(budget.amount) }} <!--Display spent and budget amounts -->
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
         </div>
     </div>
     
-    <!-- Expense Entry Form -->
+    <!-------------------------------------------------- Expense Entry Form --------------------------------->
     <div class="expense-form">
         <h2>Add New Expense</h2>
         <form method="POST" action="{{ url_for('add_expense') }}">
@@ -62,7 +62,7 @@
         </form>
     </div>
     
-    <!-- Expense Charts -->
+    <!------------------------------------------------- Expense Charts ----------------------------------->
     <div class="charts-section">
         <h2>Spending Analysis</h2>
         <div class="chart-container">
@@ -71,11 +71,11 @@
         </div>
     </div>
     
-    <!-- Expense History -->
+    <!------------------------------------------------------ Expense History ----------------------------->
     <div class="history-section">
         <h2>Expense History</h2>
         <div class="filters">
-            <form method="GET" action="{{ url_for('expenses') }}">
+            <form method="GET" action="{{ url_for('expenses') }}"> <!-- Form for filtering expenses -->
                 <select name="category_filter">
                     <option value="">All Categories</option>
                     {% for category in categories %}
@@ -117,14 +117,15 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script><!-- Load Plotly library for charts -->
 <script>
     // Category Pie Chart
     const categoryData = {
-        values: [{% for cat in chart_data.categories %}{{ cat.total }},{% endfor %}],
-        labels: [{% for cat in chart_data.categories %}"{{ cat.name }}",{% endfor %}],
-        colors: [{% for cat in chart_data.categories %}"{{ cat.color }}",{% endfor %}],
-        type: 'pie'
+        values: [{% for cat in chart_data.categories %}{{ cat.total }},{% endfor %}], // Total expenses per category
+        labels: [{% for cat in chart_data.categories %}"{{ cat.name }}",{% endfor %}],  // Category names
+        colors: [{% for cat in chart_data.categories %}"{{ cat.color }}",{% endfor %}], // Category colors
+        type: 'pie' // Chart type
+
     };
 
     Plotly.newPlot('categoryChart', [categoryData], {
@@ -138,8 +139,9 @@
         type: 'bar'
     };
 
+    // Create the monthly trend chart
     Plotly.newPlot('monthlyTrendChart', [monthlyData], {
-        title: 'Monthly Spending Trend'
+        title: 'Monthly Spending Trend' // Chart title
     });
 </script>
 {% endblock %}

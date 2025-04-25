@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "base.html" %} <!-- Inherit from the base HTML template -->
 
-{% block title %}Task Calendar{% endblock %}
+{% block title %}Task Calendar{% endblock %}  <!-- Set the title of the page -->
 
 {% block content %}
     <h1 class="page-header" style="text-align: center;">📅Task Calendar</h1>
@@ -12,7 +12,7 @@
             <input type="date" name="date" required>
             <button type="submit">Add Task</button>
         </form>
-
+<!-------------------------------------- Link to navigate back to the dashboard ---------------------------------->
         <a href="{{ url_for('home') }}" class="btn btn-primary" style="margin: 20px 0; display: inline-block;">
             ← Back to Dashboard
         </a>
@@ -28,12 +28,12 @@
     </script>
     
 
-    <!--  FullCalendar Script (loads the JS) -->
+ <!---------------------------------  FullCalendar Script (loads the JS) ------------------------------------------>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 
 
-        <!-- Calendar Initialization Code -->
+<!---------------------------------------- Calendar Initialization Code ------------------------------------------->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 let calendarEl = document.getElementById('calendar');
@@ -60,8 +60,7 @@
                         alert("Tasks for " + clickedDate + ":\n" + taskList.join("\n"));
                     }
                 });
-        
-               
+                       
                 calendar.render();
             });
         </script>

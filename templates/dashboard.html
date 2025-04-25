@@ -9,20 +9,21 @@
     </h1>
 
     <div class="card-grid">
-        <!-- Top Row - 3 Cards -->
+ <!------------------------------------------Dashboard Cards for Easy Access-------------------------------------->
         <div class="card-row top-row">
             <div class="card">
                 <div class="card-icon">🧠</div>
-                <h2>Today's Affirmation</h2>
+                <h2>Today's Affirmation</h2><!-------Affirmations Card--->
                 <p class="card-subtitle">Your positive boost for today</p>
                 <blockquote class="affirmation-text">"{{ affirmation }}"</blockquote>
             </div>
-
+<!-----------------------------------------------------Task Summary Card-------------------------------------------->
             <div class="card">
                 <div class="card-icon">📋</div>
-                <h2>Task Summary</h2>
+                <h2>Task Summary</h2> 
                 <p class="card-subtitle">Your top tasks for today</p>
-                <ul class="task-list">
+                <!----------------Displays up to 4 tasks for "Today" ------------------------------->
+                <ul class="task-list">  
                     {% if tasks %}
                         {% for task in tasks[:4] %}
                         <li class="{% if task.completed %}completed{% endif %}">
@@ -34,34 +35,37 @@
                         <li>No tasks today</li>
                     {% endif %}
                 </ul>
-                <a href="{{ url_for('task_manager') }}" class="card-btn">Manage Tasks</a>
+                <a href="{{ url_for('task_manager') }}" class="card-btn">Manage Tasks</a> <!--Link to task manager page-->
             </div>
 
             <div class="card">
                 <div class="card-icon">💧</div>
                 <h2>Water Intake</h2>
                 <p class="card-subtitle">Daily hydration tracker</p>
-                <a href="/water_intake" class="card-btn">View Logs</a>
+                <a href="/water_intake" class="card-btn">View Logs</a> <!-- Link to water intake tracker page -->
             </div>
 
             <div class="card">
               <div class="card-icon">💰</div>
               <h2>Expenses</h2>
               <p class="card-subtitle">Track your spending</p>
-              <a href="/expenses" class="card-btn">View Expenses</a>
+              <a href="/expenses" class="card-btn">View Expenses</a> <!-- Link to view expenses on expenses page -->
           </div>
 
           <div class="card">
                 <div class="card-icon">📈</div>
                 <h2>Productivity</h2>
                 <p class="card-subtitle">Your completion trends</p>
-                <a href="/productivity_report" class="card-btn">View Reports</a>
+                <a href="/productivity_report" class="card-btn">View Reports</a> <!-- Link to Productivity report page -->
           </div>
 
-
-        </div>
-
-                         
+          <div class="card">
+            <div class="card-icon">🍽️</div>
+            <h2>Food Tracker</h2>
+            <p class="card-subtitle">Your Protein and Calorie counter</p>
+            <a href="{{ url_for('nutrition') }}" class="card-btn">View Tracker</a> <!-- Link to Nutrition page -->
+          </div>
+        </div>                  
         </div>
     </main>
 {% endblock %}

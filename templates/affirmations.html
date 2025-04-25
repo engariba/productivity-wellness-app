@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}   <!-- Inherit from the base HTML template -->
 
 {% block title %}Manage Affirmations{% endblock %}
 
@@ -11,6 +11,7 @@
         <p class="affirmations-subtitle">Create and review your positive affirmations</p>
     </div>
 
+    <!--------------------------------- Section for user actions related to affirmations --------------------->
     <div class="affirmations-actions">
         <form action="{{ url_for('generate_affirmation') }}" method="GET" class="affirmation-form">
             <button type="submit" class="btn btn-affirmation">
@@ -24,8 +25,8 @@
             <i class="fas fa-heart"></i> Saved Affirmations
         </h2>
         
-        {% if affirmations %}
-        <ul class="affirmations-list">
+        {% if affirmations %}      <!-- Check if there are any saved affirmations -->
+        <ul class="affirmations-list">   <!-- Start of the list of affirmations -->
             {% for affirmation in affirmations %}
             <li class="affirmation-card">
                 <div class="affirmation-content">
@@ -35,7 +36,7 @@
              </li>
             {% endfor %}
         </ul>
-        {% else %}
+        {% else %} <!-- Content to display if no affirmations are saved -->
         <div class="empty-affirmations">
             <i class="fas fa-comment-slash"></i>
             <p>No affirmations saved yet. Generate your first one!</p>

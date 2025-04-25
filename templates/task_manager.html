@@ -1,30 +1,31 @@
-{% extends "base.html" %}
-{% block title %}Manage Tasks{% endblock %}
+{% extends "base.html" %} <!-- Inherit from the base HTML template -->
+
+{% block title %}Manage Tasks{% endblock %} <!-- Set the title of the page -->
 
 {% block content %}
 <h1 class="page-header">✅ Task Manager</h1>
 
-<div class="filter-buttons">
-    <a href="{{ url_for('task_manager', filter='today') }}" class="btn">Today</a>
-    <a href="{{ url_for('task_manager', filter='week') }}" class="btn">This Week</a>
-    <a href="{{ url_for('task_manager', filter='month') }}" class="btn">This Month</a>
-    <a href="{{ url_for('task_manager') }}" class="btn">All</a>
+<div class="filter-buttons"> <!-- Section for filter buttons -->
+    <a href="{{ url_for('task_manager', filter='today') }}" class="btn">Today</a> <!-- Link to filter tasks for today -->
+    <a href="{{ url_for('task_manager', filter='week') }}" class="btn">This Week</a> <!-- Link to filter tasks for today -->
+    <a href="{{ url_for('task_manager', filter='month') }}" class="btn">This Month</a> <!-- Link to filter tasks for this month -->
+    <a href="{{ url_for('task_manager') }}" class="btn">All</a> <!-- Link to view all tasks -->
 </div>
 
-<div class="task-cards">
+<div class="task-cards"> <!-- Container for displaying task cards -->
     {% for task in tasks %}
         <div class="task-card {% if task.completed %}completed{% endif %}">
             <h4>{{ task.title or task.description }}</h4>
             <p>Date: {{ task.date.strftime('%b %d, %Y') }}</p>
             {% if task.completed %}
-                <span class="status">✔ Completed</span>
+                <span class="status">✔ Completed</span>  <!-- Indicate the task is completed -->
             {% else %}
-                <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn small">Mark as Complete</a>
+                <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn small">Mark as Complete</a> <!-- Link to mark the task as complete -->
             {% endif %}
-            <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn small danger">Delete</a>
+            <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn small danger">Delete</a> <!-- Link to delete the task -->
         </div>
     {% else %}
-        <p>No tasks found for this view.</p>
+        <p>No tasks found for this view.</p> <!-- Message indicating no tasks -->
     {% endfor %}
 </div>
   
