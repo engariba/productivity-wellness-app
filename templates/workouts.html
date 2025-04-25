@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Gym Workouts{% endblock %}
+
+{% block content %}
+<h1>🏋️ Random Gym Workout</h1>
+<p class="subtitle">Generate a random gym workout suggestion to try today.</p>
+
+<form method="POST">
+    <button type="submit">Generate Workout</button>
+</form>
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% elif workout %}
+    <div class="card">
+        <h2>{{ workout.name }}</h2>
+        <p><strong>Type:</strong> {{ workout.type }}</p>
+        <p><strong>Muscle:</strong> {{ workout.muscle }}</p>
+        <p><strong>Difficulty:</strong> {{ workout.difficulty }}</p>
+        <p><strong>Instructions:</strong></p>
+            <ul>
+                {% for step in workout.instructions.split('.') %}
+                    {% if step.strip() %}
+                        <li>{{ step.strip() }}.</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
+    </div>
+{% else %}
+    <p>No workout yet. Click the button to generate one!</p>
+{% endif %}
+{% endblock %}

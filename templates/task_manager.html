@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Manage Tasks{% endblock %}
+
+{% block content %}
+<h1>🛠 Manage Your Tasks</h1>
+
+<div class="filter-buttons">
+    <a href="{{ url_for('task_manager', filter='today') }}" class="btn">Today</a>
+    <a href="{{ url_for('task_manager', filter='week') }}" class="btn">This Week</a>
+    <a href="{{ url_for('task_manager', filter='month') }}" class="btn">This Month</a>
+    <a href="{{ url_for('task_manager') }}" class="btn">All</a>
+</div>
+
+<div class="task-cards">
+    {% for task in tasks %}
+        <div class="task-card {% if task.completed %}completed{% endif %}">
+            <h4>{{ task.title or task.description }}</h4>
+            <p>Date: {{ task.date.strftime('%b %d, %Y') }}</p>
+            {% if task.completed %}
+                <span class="status">✔ Completed</span>
+            {% else %}
+                <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn small">Mark as Complete</a>
+            {% endif %}
+            <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn small danger">Delete</a>
+        </div>
+    {% else %}
+        <p>No tasks found for this view.</p>
+    {% endfor %}
+</div>
+  
+{% endblock %}

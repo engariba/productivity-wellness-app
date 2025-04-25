@@ -8,7 +8,7 @@
     <script src="/static/script.js"></script>
 </head>
 <body>
-    {% include 'navbar.html' %}
+    {% include 'base.html' %}
     <header>
         <h1>Expense Tracker</h1>
     </header>
@@ -22,9 +22,15 @@
             <h2>Expense History</h2>
             <ul>
                 {% for expense in expenses %}
-                <li>{{ expense.timestamp }} - {{ expense.description }}: ${{ expense.amount }}</li>
+                <li>
+                    {{ expense.timestamp }} - {{ expense.description }}: ${{ expense.amount }}
+                    <form action="{{ url_for('delete_expense', expense_id=expense.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn small danger" onclick="return confirm('Delete this expense?');">Delete</button>
+                    </form>
+                </li>
                 {% endfor %}
             </ul>
+            
             <h3>Total Expenses: ${{ total }}</h3>
         </section>
     </main>

@@ -12,7 +12,10 @@ import random
 import plotly
 import requests
 from datetime import datetime
-
+from datetime import timedelta
+from sqlalchemy import extract
+import random
+from flask import Flask, render_template
 
 
 app = Flask(__name__)
@@ -60,10 +63,13 @@ class Activity(db.Model):
 # Routes
 @app.route('/')
 def home():
-    tasks = Task.query.all()
+    today = datetime.today().date()
+    tasks = Task.query.filter(Task.date == today).all()
     affirmations = Affirmation.query.all()
     daily_affirmation = random.choice(affirmations).message if affirmations else "Stay positive!"
+
     return render_template('dashboard.html', tasks=tasks, affirmation=daily_affirmation)
+
 
 @app.route('/add_task', methods=['POST'])
 def add_task():
@@ -87,20 +93,23 @@ def add_task():
 
 @app.route('/complete_task/<int:task_id>')
 def complete_task(task_id):
+    """Mark a task as completed and return to the same page"""
     task = Task.query.get(task_id)
     if task:
         task.completed = True
         db.session.commit()
-    return redirect(url_for('home'))
-
+    # Stay on the task manager page after marking as complete
+    return redirect(request.referrer or url_for('task_manager'))
 
 @app.route('/delete_task/<int:task_id>')
 def delete_task(task_id):
+    """Delete a task and redirect to the previous page"""
     task = Task.query.get(task_id)
     if task:
         db.session.delete(task)
         db.session.commit()
-    return redirect(url_for('home'))
+    return redirect(request.referrer or url_for('task_manager'))
+
 
 
 
@@ -137,6 +146,13 @@ def expenses():
     all_expenses = Expense.query.order_by(Expense.timestamp.desc()).all()
     total_expenses = sum(exp.amount for exp in all_expenses)
     return render_template('expenses.html', expenses=all_expenses, total=total_expenses)
+
+@app.route('/delete_expense/<int:expense_id>', methods=['POST'])
+def delete_expense(expense_id):
+    expense = Expense.query.get_or_404(expense_id)
+    db.session.delete(expense)
+    db.session.commit()
+    return redirect(url_for('expenses'))
 
 
 @app.route('/affirmations', methods=['GET', 'POST'])
@@ -197,50 +213,146 @@ def activities():
 
 @app.route('/calendar')
 def calendar_view():
-    tasks = Task.query.all()
+    tasks = Task.query.filter(Task.completed == False).all()
+
+    events = []
+    for task in tasks:
+        events.append({
+            'title': task.description,
+            'start': task.date.strftime('%Y-%m-%d')
+        })
+
     task_map = {}
     for task in tasks:
-        date_str = task.date.strftime("%Y-%m-%d")
+        date_str = task.date.strftime('%Y-%m-%d')
         task_map.setdefault(date_str, []).append(task.description)
 
-    return render_template('calendar.html', task_map=task_map)
-
+    return render_template('calendar.html', task_map=task_map, events=events)
 
 
 
 @app.route('/productivity_report')
 def productivity_report():
-    # Query task statistics
-    completed_tasks = int(Task.query.filter(Task.completed.is_(True)).count())
-    pending_tasks = int(Task.query.filter(Task.completed.is_(False)).count())
+    """Generate productivity charts with REAL user data"""
+    today = datetime.today().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_month = today.replace(day=1)
 
-    # Avoid empty data errors
-    if completed_tasks == 0 and pending_tasks == 0:
-        return render_template('productivity_report.html', graph_json=None)
+    # Get REAL data from database
+    completed_tasks = Task.query.filter(Task.completed.is_(True)).count()
+    pending_tasks = Task.query.filter(Task.completed.is_(False)).count()
+    
+    daily_completed = Task.query.filter(
+        Task.completed.is_(True),
+        Task.date == today
+    ).count()
+    
+    weekly_completed = Task.query.filter(
+        Task.completed.is_(True),
+        Task.date >= start_of_week
+    ).count()
+    
+    monthly_completed = Task.query.filter(
+        Task.completed.is_(True),
+        Task.date >= start_of_month
+    ).count()
 
-    # Prepare data for the chart
-    task_data = {
-        "Status": ["Completed", "Pending"],
-        "Count": [completed_tasks, pending_tasks]
+    # Chart 1: Completion Status
+    fig1 = {
+        'data': [{
+            'x': ['Completed', 'Pending'],
+            'y': [completed_tasks, pending_tasks],
+            'type': 'bar',
+            'marker': {
+                'color': ['#4CAF50', '#F44336']
+            }
+        }],
+        'layout': {
+            'title': 'Task Completion Status',
+            'yaxis': {'title': 'Number of Tasks'}
+        }
     }
 
-    # Generate the bar chart using Plotly
-    fig = px.bar(
-        x=task_data["Status"],
-        y=task_data["Count"],  # Ensure values are integers
-        title="Task Completion Status",
-        labels={"x": "Task Status", "y": "Number of Tasks"},
-        color=task_data["Status"],
-        color_discrete_map={"Completed": "green", "Pending": "red"}
+    # Chart 2: Completion Over Time
+    fig2 = {
+        'data': [{
+            'x': ['Today', 'This Week', 'This Month'],
+            'y': [daily_completed, weekly_completed, monthly_completed],
+            'type': 'bar',
+            'marker': {
+                'color': ['#2196F3', '#FF9800', '#9C27B0']
+            }
+        }],
+        'layout': {
+            'title': 'Tasks Completed Over Time',
+            'yaxis': {'title': 'Tasks Completed'}
+        }
+    }
+
+    print("Completed tasks:", Task.query.filter_by(completed=True).count())
+    print("Pending tasks:", Task.query.filter_by(completed=False).count())
+
+    return render_template(
+        "productivity_report.html",
+        chart1=fig1,
+        chart2=fig2
     )
 
-    # Convert the figure to JSON
-    graph_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    # Debug: Print the JSON to verify it
-    print("Updated Graph JSON:", graph_json)
+@app.route('/task_manager')
+def task_manager():
+    """Display tasks filtered by Today, Week, Month, or All."""
+    filter_by = request.args.get('filter', 'all')
+    today = datetime.today().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_month = today.replace(day=1)
 
-    return render_template('productivity_report.html', graph_json=graph_json)
+    # Apply filters based on the URL parameter
+    if filter_by == 'today':
+        tasks = Task.query.filter(Task.date == today).all()
+    elif filter_by == 'week':
+        tasks = Task.query.filter(Task.date >= start_of_week).all()
+    elif filter_by == 'month':
+        tasks = Task.query.filter(Task.date >= start_of_month).all()
+    else:
+        tasks = Task.query.order_by(Task.date).all()
+
+    return render_template('task_manager.html', tasks=tasks, filter_by=filter_by)
+
+
+
+import random
+from flask import Flask, render_template, request
+
+
+
+API_NINJAS_KEY = 'jwxOJEhMmeMBb65wq4Jj7Q==JFoavdqAGgs2zmah'
+
+@app.route('/workouts', methods=['GET', 'POST'])
+def workouts():
+    if request.method == 'POST':
+        try:
+            headers = {'X-Api-Key': API_NINJAS_KEY}
+            params = {'muscle': 'chest'}  # You can change this to any group like 'legs', 'back', etc.
+            response = requests.get('https://api.api-ninjas.com/v1/exercises', headers=headers, params=params)
+
+            if response.status_code == 200:
+                exercises = response.json()
+                if exercises:
+                    workout = random.choice(exercises)
+                    return render_template('workouts.html', workout=workout)
+                else:
+                    error = "No exercises found."
+            else:
+                error = f"API returned status code {response.status_code}."
+        except requests.RequestException as e:
+            error = f"An error occurred while fetching data: {e}"
+
+        return render_template('workouts.html', workout=None, error=error)
+
+    return render_template('workouts.html', workout=None)
+
+
 
 # Schedule periodic reminders
 scheduler = BackgroundScheduler()

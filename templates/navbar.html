@@ -2,12 +2,14 @@
     <h2>Menu</h2>
     <ul>
         <li><a href="/"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li><a href="{{ url_for('task_manager') }}"><i class="fas fa-tasks"></i> Manage Tasks</a></li>
         <li><a href="/water_intake"><i class="fas fa-tint"></i> Water Intake Tracker</a></li>
         <li><a href="/expenses"><i class="fas fa-wallet"></i> Expense Tracker</a></li>
         <li><a href="/affirmations"><i class="fas fa-smile"></i> Manage Affirmations</a></li>
         <li><a href="/activities"><i class="fas fa-running"></i> Activity Logger</a></li>
         <li><a href="/productivity_report"><i class="fas fa-chart-line"></i> Productivity Report</a></li>
-        <li><a href="{{ url_for('calendar_view') }}">📅 Calendar</a></li>
+        <li><a href="{{ url_for('calendar_view') }}"><i class="fas fa-calendar"></i> Calendar</a></li>
 
     </ul>
 </aside>
+

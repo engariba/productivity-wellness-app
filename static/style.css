@@ -1,29 +1,30 @@
-/* Global Styles 
+ Global Styles 
 body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
 }
-*/
+
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: url('/static/images/dashboard-bg3.jpg') no-repeat center center fixed;
+    background: turquoise;
     background-size: cover;
 }
 
 
-/* Header */
+/* Header  url('/static/images/dashboard-bg3.jpg') no-repeat center center fixed;*/
 header {
-   /* background-color: #007BFF;*/
+  
     color: white;
-    padding: 20px;
+    padding: 0px;
     text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
 }
 header h1 {
     margin: 0;
     font-size: 2rem;
+    margin-left: 250px
 }
 
 /* Navigation */
@@ -149,7 +150,7 @@ ul li:hover {
     background: #e6f7ff;
 }
 
-/* Progress Bar for Visualizing Goals (Optional Addition) */
+/* Progress Bar for Visualizing Goals */
 .progress-bar {
     background: #e9ecef;
     border-radius: 20px;
@@ -168,14 +169,7 @@ ul li:hover {
     border-radius: 20px;
 }
 
-/* Footer (Optional if you have one) */
-footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #0056b3;
-    color: white;
-    font-size: 0.9rem;
-}
+
 /* Toast Notifications */
 .toast {
     position: fixed;
@@ -253,6 +247,224 @@ form label {
 }
 
 main {
-    margin-left: 270px; /* Push content to the right */
+    margin-left: 420px; /* Push content to the right */
     padding: 20px;
+}
+
+.calendar-wrapper {
+    width: 95%;
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#calendar {
+    width: 100%;
+    font-size: 0.95rem;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+    background-color: #eaf4ff !important;
+    border: 2px solid #007BFF !important;
+    border-radius: 8px;
+}
+.fc .fc-toolbar-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.fc .fc-button {
+    background-color: #007BFF;
+    border: none;
+    padding: 6px 12px;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.fc .fc-button:hover {
+    background-color: #0056b3;
+}
+
+.card ul li {
+    list-style: none;
+    text-align: left;
+    padding: 6px 8px;
+    font-size: 0.95rem;
+}
+
+.subtitle {
+    color: #555;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.affirmation-text {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #333;
+    margin-top: 10px;
+    padding-left: 10px;
+    border-left: 4px solid #007BFF;
+}
+
+
+.task-list li {
+    background: #fff;
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-list .status.done {
+    color: green;
+    font-weight: bold;
+}
+
+.btn.small {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+}
+
+.btn.danger {
+    background: #dc3545;
+}
+
+.btn.danger:hover {
+    background: #c82333;
+}
+
+
+
+
+.task-card:hover {
+    transform: scale(1.02);
+}
+
+.task-card.completed {
+    border-left-color: green;
+    opacity: 0.7;
+    text-decoration: line-through;
+}
+
+.task-card .status {
+    font-weight: bold;
+    color: green;
+}
+
+
+/* Calendar Styling */
+#calendar {
+    width: 100%;
+    margin: 20px 0;
+    font-family: Arial, sans-serif;
+}
+
+.fc-toolbar {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.fc-daygrid-day {
+    border: 1px solid #ddd;
+}
+
+.fc-event {
+    background-color: #4CAF50;
+    border: none;
+    padding: 2px 5px;
+    color: white;
+}
+
+/* Chart Container Fixes */
+.report-charts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.chart-box {
+    flex: 1 1 48%;
+    min-height: 350px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 1rem;
+}
+
+
+.report-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.chart-grid {
+    display: grid;
+    gap: 30px;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+    .chart-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.task-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.task-card {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.task-card:hover {
+    transform: scale(1.02);
+}
+
+.task-card.completed {
+    background-color: #f0f8f0;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background-color: #28a745;
+    color: white;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    margin-top: 1rem;
 }
