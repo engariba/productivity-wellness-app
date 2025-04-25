@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Calendar</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <style>
+        body {
+            margin: 40px 10px;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #calendar {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+  
+    <h1 style="text-align: center;">Task Calendar</h1>
+
+    <h2>Add New Task</h2>
+<!-- Add Task Form -->
+<h3 class="mt-4">Add a Task</h3>
+<form method="POST" action="/add_task">
+    <input type="text" name="description" placeholder="Task description" required>
+    <input type="date" name="date" required>
+    <button type="submit">Add Task</button>
+</form>
+
+
+<hr>
+<a href="{{ url_for('home') }}" class="btn btn-primary" style="margin-bottom: 20px;">
+    ← Back to Dashboard
+</a>
+
+<div style="display: flex; justify-content: center; padding-top: 20px;">
+    <div id="calendar" style="width: 70%; max-width: 900px;"></div>
+</div>
+
+
+
+    <!-- Calendar Container -->
+    <div id='calendar'></div>
+
+    <!-- Hidden script tag to safely store task data -->
+    <script id="task-data" type="application/json">
+        {{ task_map | tojson }}
+    </script>
+
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let calendarEl = document.getElementById('calendar');
+
+            // Parse the JSON safely
+            let taskMapScript = document.getElementById('task-data');
+            let tasks = JSON.parse(taskMapScript.textContent);
+
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                dateClick: function(info) {
+                    let clickedDate = info.dateStr;
+                    let taskList = tasks[clickedDate] || ["No tasks for this day."];
+                    alert("Tasks for " + clickedDate + ":\n" + taskList.join("\n"));
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>

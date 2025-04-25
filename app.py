@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import jsonify  # Import for returning JSON data (optional)
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -9,21 +10,28 @@ import json
 import os
 import random
 import plotly
+import requests
+from datetime import datetime
+
+
 
 app = Flask(__name__)
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "app.db")}'
+
 
 # Database configuration
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Models
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), nullable=False)
     completed = db.Column(db.Boolean, default=False)
+    date = db.Column(db.Date, nullable=False)
+
 
 class Affirmation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,12 +67,21 @@ def home():
 
 @app.route('/add_task', methods=['POST'])
 def add_task():
-    description = request.form.get('task')
-    if description:
-        new_task = Task(description=description)
-        db.session.add(new_task)
-        db.session.commit()
-    return redirect(url_for('home'))
+    description = request.form.get('description')
+    date_str = request.form.get('date')
+
+    if not description or not date_str:
+        return "Missing data", 400
+
+    try:
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return "Invalid date format", 400
+
+    new_task = Task(description=description, date=date)
+    db.session.add(new_task)
+    db.session.commit()
+    return redirect(url_for('calendar_view'))
 
 
 
@@ -75,7 +92,6 @@ def complete_task(task_id):
         task.completed = True
         db.session.commit()
     return redirect(url_for('home'))
-
 
 
 @app.route('/delete_task/<int:task_id>')
@@ -135,6 +151,22 @@ def affirmations():
     all_affirmations = Affirmation.query.all()
     return render_template('affirmations.html', affirmations=all_affirmations)
 
+
+
+@app.route('/generate_affirmation')
+def generate_affirmation():
+    response = requests.get('https://www.affirmations.dev/')
+    if response.status_code == 200:
+        data = response.json()
+        message = data.get('affirmation')
+        if message:
+            new_affirmation = Affirmation(message=message)
+            db.session.add(new_affirmation)
+            db.session.commit()
+            return redirect(url_for('affirmations'))
+    return "Failed to generate affirmation", 500
+
+
 @app.route('/get_affirmation')
 def get_affirmation():
     affirmations = Affirmation.query.all()
@@ -162,6 +194,18 @@ def activities():
             return redirect(url_for('activities'))
     all_activities = Activity.query.order_by(Activity.date.desc()).all()
     return render_template('activities.html', activities=all_activities)
+
+@app.route('/calendar')
+def calendar_view():
+    tasks = Task.query.all()
+    task_map = {}
+    for task in tasks:
+        date_str = task.date.strftime("%Y-%m-%d")
+        task_map.setdefault(date_str, []).append(task.description)
+
+    return render_template('calendar.html', task_map=task_map)
+
+
 
 
 @app.route('/productivity_report')
@@ -226,7 +270,8 @@ def send_reminder():
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {reminder}")
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()  # Ensure the database tables are created
-    app.run(debug=True)
+#if __name__ == "__main__":
+   # with app.app_context():
+       #db.create_all()
+    #app.run(debug=True)
+

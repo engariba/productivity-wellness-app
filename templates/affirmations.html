@@ -13,10 +13,10 @@
         <h1>Manage Affirmations</h1>
     </header>
     <main>
-        <form action="/affirmations" method="post">
-            <input type="text" name="message" placeholder="Enter a new affirmation" required>
-            <button type="submit">Add Affirmation</button>
+        <form action="{{ url_for('generate_affirmation') }}" method="GET">
+            <button type="submit">Generate Random Affirmation</button>
         </form>
+        
         <section class="saved-affirmations">
             <h2>Saved Affirmations</h2>
             <ul>

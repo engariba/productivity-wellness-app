@@ -23,6 +23,7 @@
                 <ul>
                     {% for task in tasks %}
                     <li>
+                        <li>{{ task.title }} — {{ task.date.strftime('%b %d, %Y') }}</li>
                         {{ task.description }} - {% if task.completed %}✔ Completed{% else %}
                         <a href="/complete_task/{{ task.id }}">Mark as Completed</a>
                         {% endif %}
@@ -30,10 +31,8 @@
                     </li>
                     {% endfor %}
                 </ul>
-                <form action="/add_task" method="post">
-                    <input type="text" name="task" placeholder="New task">
-                    <button type="submit">Add</button>
-                </form>
+                  
+             
             </div>
         
             <div class="card">
