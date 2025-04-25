@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Gym Workouts{% endblock %}
+
+{% block content %}
+<div class="workout-container">
+    <div class="page-header-container">
+        <h1 class="page-header">
+            <i class="fas fa-dumbbell"></i> Random Gym Workout
+        </h1>
+        <p class="page-subtitle">Generate a random gym workout suggestion to try today</p>
+    </div>
+
+    <form method="POST" class="workout-form">
+        <button type="submit" class="btn btn-generate">
+            <i class="fas fa-random"></i> Generate Workout
+        </button>
+    </form>
+
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% elif workout %}
+        <div class="workout-card card">
+            <div class="workout-header">
+                <h2>{{ workout.name }}</h2>
+                <span class="difficulty-badge difficulty-{{ workout.difficulty|lower }}">
+                    {{ workout.difficulty }}
+                </span>
+            </div>
+            
+            <div class="workout-meta">
+                <p><strong>Type:</strong> {{ workout.type }}</p>
+                <p><strong>Target Muscle:</strong> {{ workout.muscle }}</p>
+            </div>
+            
+            <div class="workout-instructions">
+                <h3>Instructions:</h3>
+                <ol class="instructions-list">
+                    {% for step in workout.instructions.split('.') %}
+                        {% if step.strip() %}
+                            <li>{{ step.strip() }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-info-circle"></i>
+            <p>No workout generated yet. Click the button above to get started!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

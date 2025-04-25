@@ -1,0 +1,68 @@
+{% extends "base.html" %} <!-- Inherit from the base HTML template -->
+
+{% block title %}Task Calendar{% endblock %}  <!-- Set the title of the page -->
+
+{% block content %}
+    <h1 class="page-header" style="text-align: center;">📅Task Calendar</h1>
+  
+    <div class="calendar-wrapper">
+        <h2>Add a Task</h2>
+        <form method="POST" action="/add_task">
+            <input type="text" name="description" placeholder="Task description" required>
+            <input type="date" name="date" required>
+            <button type="submit">Add Task</button>
+        </form>
+<!-------------------------------------- Link to navigate back to the dashboard ---------------------------------->
+        <a href="{{ url_for('home') }}" class="btn btn-primary" style="margin: 20px 0; display: inline-block;">
+            ← Back to Dashboard
+        </a>
+
+        <div id="calendar"></div>
+    </div>
+
+    <script id="task-data" type="application/json">
+        {{ task_map | tojson }}
+    </script>
+    <script id="event-data" type="application/json">
+        {{ events | tojson }}
+    </script>
+    
+
+ <!---------------------------------  FullCalendar Script (loads the JS) ------------------------------------------>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+
+
+<!---------------------------------------- Calendar Initialization Code ------------------------------------------->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                let calendarEl = document.getElementById('calendar');
+                let taskMapScript = document.getElementById('task-data');
+                let eventDataScript = document.getElementById('event-data');
+        
+                let tasks = JSON.parse(taskMapScript.textContent);
+                let events = JSON.parse(eventDataScript.textContent);
+        
+                let calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    height: 'auto',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,listMonth'
+                    },
+                    dayMaxEventRows: true,
+                    showNonCurrentDates: false,
+                    events: events,
+                    dateClick: function(info) {
+                        let clickedDate = info.dateStr;
+                        let taskList = tasks[clickedDate] || ["No tasks for this day."];
+                        alert("Tasks for " + clickedDate + ":\n" + taskList.join("\n"));
+                    }
+                });
+                       
+                calendar.render();
+            });
+        </script>
+        
+{% endblock %}
