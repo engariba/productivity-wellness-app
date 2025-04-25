@@ -1,30 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Affirmations</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/script.js"></script>
-</head>
-<body>
-    {% include 'base.html' %}
-    <header>
-        <h1>Manage Affirmations</h1>
-    </header>
-    <main>
-        <form action="{{ url_for('generate_affirmation') }}" method="GET">
-            <button type="submit">Generate Random Affirmation</button>
+{% extends "base.html" %}
+
+{% block title %}Manage Affirmations{% endblock %}
+
+{% block content %}
+<div class="affirmations-page">
+    <div class="affirmations-header">
+        <h1 class="affirmations-title">
+            <i class="fa-solid fa-brain"></i> Manage Affirmations
+        </h1>
+        <p class="affirmations-subtitle">Create and review your positive affirmations</p>
+    </div>
+
+    <div class="affirmations-actions">
+        <form action="{{ url_for('generate_affirmation') }}" method="GET" class="affirmation-form">
+            <button type="submit" class="btn btn-affirmation">
+                <i class="fas fa-random"></i> Generate Random Affirmation
+            </button>
         </form>
+    </div>
+
+    <div class="affirmations-list-container">
+        <h2 class="affirmations-list-title">
+            <i class="fas fa-heart"></i> Saved Affirmations
+        </h2>
         
-        <section class="saved-affirmations">
-            <h2>Saved Affirmations</h2>
-            <ul>
-                {% for affirmation in affirmations %}
-                <li>{{ affirmation.message }}</li>
-                {% endfor %}
-            </ul>
-        </section>
-    </main>
-</body>
-</html>
+        {% if affirmations %}
+        <ul class="affirmations-list">
+            {% for affirmation in affirmations %}
+            <li class="affirmation-card">
+                <div class="affirmation-content">
+                    <i class="fas fa-quote-right affirmation-quote"></i>
+                    {{ affirmation.message }}
+                </div>
+             </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-affirmations">
+            <i class="fas fa-comment-slash"></i>
+            <p>No affirmations saved yet. Generate your first one!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+

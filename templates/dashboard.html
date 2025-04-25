@@ -1,66 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+{% extends "base.html" %}
 
-    <script src="/static/script.js"></script>
-</head>
-<body>
-    {% include 'base.html' %}
-    
-    <header>
-        <h1>Dashboard</h1>
-    </header>
+{% block title %}Dashboard{% endblock %}
 
-    <main class="dashboard">
-        <div class="card">
-            <h2>🧠 Today's Affirmation</h2>
-            <p class="subtitle">Your positive boost for today 💬</p>
-            <blockquote class="affirmation-text">"{{ affirmation }}"</blockquote>
+{% block content %}
+<main class="dashboard-container">
+    <h1 class="page-header">
+        📊 Dashboard
+    </h1>
+
+    <div class="card-grid">
+        <!-- Top Row - 3 Cards -->
+        <div class="card-row top-row">
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <h2>Today's Affirmation</h2>
+                <p class="card-subtitle">Your positive boost for today</p>
+                <blockquote class="affirmation-text">"{{ affirmation }}"</blockquote>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">📋</div>
+                <h2>Task Summary</h2>
+                <p class="card-subtitle">Your top tasks for today</p>
+                <ul class="task-list">
+                    {% if tasks %}
+                        {% for task in tasks[:4] %}
+                        <li class="{% if task.completed %}completed{% endif %}">
+                            {{ task.title or task.description }}
+                            <span>{{ task.date.strftime('%b %d') }}</span>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>No tasks today</li>
+                    {% endif %}
+                </ul>
+                <a href="{{ url_for('task_manager') }}" class="card-btn">Manage Tasks</a>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">💧</div>
+                <h2>Water Intake</h2>
+                <p class="card-subtitle">Daily hydration tracker</p>
+                <a href="/water_intake" class="card-btn">View Logs</a>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">💰</div>
+              <h2>Expenses</h2>
+              <p class="card-subtitle">Track your spending</p>
+              <a href="/expenses" class="card-btn">View Expenses</a>
+          </div>
+
+          <div class="card">
+                <div class="card-icon">📈</div>
+                <h2>Productivity</h2>
+                <p class="card-subtitle">Your completion trends</p>
+                <a href="/productivity_report" class="card-btn">View Reports</a>
+          </div>
+
+
         </div>
 
-        <div class="card">
-            <h2>📋 Task Summary</h2>
-            <p class="subtitle">Here’s a preview of your top tasks for today:</p>
-            <ul>
-                {% if tasks %}
-                  {% for task in tasks[:4] %}
-                    <li style="{% if task.completed %}text-decoration: line-through; color: gray;{% endif %}">
-                      <strong>{{ task.title or task.description }}</strong> — {{ task.date.strftime('%b %d, %Y') }}
-                    </li>
-                  {% endfor %}
-                {% else %}
-                  <li>No tasks for today.</li>
-                {% endif %}
-              </ul>
-              
-              <a class="btn" href="{{ url_for('task_manager') }}">Manage All Tasks</a>
-
-              
-        </div>
-
-        <div class="card">
-            <h2>💧 Water Intake</h2>
-            <p class="subtitle">Stay refreshed! Log your water intake and hit your daily hydration goal 💧</p>
-            <a href="/water_intake">View Logs</a>
-        </div>
-
-        <div class="card">
-            <h2>💰 Expenses</h2>
-            <p class="subtitle">Track your spending, set budgets, and gain financial control 💸</p>
-            <a href="/expenses">View Expenses</a>
-        </div>
-
-        <div class="card">
-            <h2>📈 Productivity</h2>
-            <p class="subtitle">See how your completed tasks add up — daily, weekly, and monthly 📊</p>
-            <a href="/productivity_report">View Reports</a>
+                         
         </div>
     </main>
-</body>
-</html>
+{% endblock %}

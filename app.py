@@ -16,9 +16,15 @@ from datetime import timedelta
 from sqlalchemy import extract
 import random
 from flask import Flask, render_template
+from sqlalchemy import extract, and_
+from flask import Flask, render_template, request, redirect, url_for, session
+from datetime import datetime
+from flask import flash
+
 
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-here' 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "app.db")}'
 
@@ -50,14 +56,29 @@ class Expense(db.Model):
     description = db.Column(db.String(200), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=db.func.now())
+    category_id = db.Column(db.Integer, db.ForeignKey('expense_category.id'))
+
+    category = db.relationship('ExpenseCategory')
+
+class ExpenseCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    color = db.Column(db.String(7))  # Hex color code
+
+class Budget(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('expense_category.id'))
+    amount = db.Column(db.Float, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+
+    category = db.relationship('ExpenseCategory')
 
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     activity_type = db.Column(db.String(100), nullable=False)
     duration = db.Column(db.Float, nullable=False)  # Duration in minutes
     date = db.Column(db.Date, nullable=False)
-
-
 
 
 # Routes
@@ -115,37 +136,198 @@ def delete_task(task_id):
 
 @app.route('/water_intake', methods=['GET', 'POST'])
 def water_intake():
-    daily_goal = 2000  # Set a daily water intake goal (in ml)
+    daily_goal = 2000
     if request.method == 'POST':
         amount = request.form.get('amount')
         if amount and amount.isdigit():
             new_entry = WaterLog(amount=int(amount))
             db.session.add(new_entry)
             db.session.commit()
+            flash('Water intake added!', 'success')  # Optional confirmation
             return redirect(url_for('water_intake'))
 
-    # Calculate total intake for today
     today = datetime.today().date()
     records = WaterLog.query.filter(WaterLog.timestamp >= today).all()
     total_intake = sum(record.amount for record in records)
 
-    return render_template('water_intake.html', records=records, total_intake=total_intake, daily_goal=daily_goal)
+    return render_template('water_intake.html', 
+                         records=records, 
+                         total_intake=total_intake, 
+                         daily_goal=daily_goal)
+
+@app.route('/reset_water', methods=['POST'])
+def reset_water():
+    # Delete today's records from DATABASE (not session)
+    today = datetime.today().date()
+    WaterLog.query.filter(WaterLog.timestamp >= today).delete()
+    db.session.commit()
+    flash('Water log reset successfully', 'success')
+    return redirect(url_for('water_intake'))
 
 
+# Function to calculate category totals
+def calculate_category_totals(budgets, current_month, current_year):
+    category_totals = {}
+    for budget in budgets:
+        monthly_expenses = Expense.query.filter(
+            Expense.category_id == budget.category_id,
+            extract('month', Expense.timestamp) == current_month,
+            extract('year', Expense.timestamp) == current_year
+        ).all()
+        category_totals[budget.category_id] = sum(exp.amount for exp in monthly_expenses)
+    return category_totals
 
 @app.route('/expenses', methods=['GET', 'POST'])
 def expenses():
-    if request.method == 'POST':
-        description = request.form.get('description')
-        amount = request.form.get('amount')
-        if description and amount and amount.isdigit():
-            new_expense = Expense(description=description, amount=float(amount))
-            db.session.add(new_expense)
-            db.session.commit()
-            return redirect(url_for('expenses'))
-    all_expenses = Expense.query.order_by(Expense.timestamp.desc()).all()
-    total_expenses = sum(exp.amount for exp in all_expenses)
-    return render_template('expenses.html', expenses=all_expenses, total=total_expenses)
+    today = datetime.today()
+    current_month = today.month
+    current_year = today.year
+
+    # Handle filters
+    category_filter = request.args.get('category_filter', '')
+    time_filter = request.args.get('time_filter', 'all')
+
+    # Base query for expenses
+    query = Expense.query
+
+    # Apply filters
+    if category_filter:
+        query = query.filter(Expense.category_id == category_filter)
+
+    if time_filter == 'month':
+        start_date = today.replace(day=1)
+        query = query.filter(Expense.timestamp >= start_date)
+    elif time_filter == 'week':
+        start_date = today - timedelta(days=today.weekday())
+        query = query.filter(Expense.timestamp >= start_date)
+
+    # Get filtered expenses
+    filtered_expenses = query.order_by(Expense.timestamp.desc()).all()
+    total_expenses = sum(exp.amount for exp in filtered_expenses)
+
+    # Get all categories and current month's budgets
+    categories = ExpenseCategory.query.all()
+    budgets = Budget.query.filter(
+        Budget.month == current_month,
+        Budget.year == current_year
+    ).all()
+
+    # Calculate category totals - IMPROVED VERSION
+    category_totals = {}
+    for category in categories:
+        # Base query for this category
+        cat_query = Expense.query.filter(Expense.category_id == category.id)
+        
+        # Always calculate monthly total for budget progress
+        monthly_expenses = cat_query.filter(
+            extract('month', Expense.timestamp) == current_month,
+            extract('year', Expense.timestamp) == current_year
+        ).all()
+        category_totals[category.id] = sum(exp.amount for exp in monthly_expenses)
+
+    # Prepare chart data
+    chart_data = {
+        'categories': [],
+        'months': []
+    }
+
+    # Category data for pie chart
+    for category in categories:
+        chart_data['categories'].append({
+            'name': category.name,
+            'total': category_totals.get(category.id, 0),
+            'color': category.color
+        })
+
+    # Monthly trend data (last 6 months)
+    for i in range(6):
+        month_date = today - timedelta(days=30*i)
+        month_start = month_date.replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        monthly_expenses = Expense.query.filter(
+            and_(
+                Expense.timestamp >= month_start,
+                Expense.timestamp <= month_end
+            )
+        ).all()
+        
+        chart_data['months'].append({
+            'date': month_start.strftime('%b %Y'),
+            'total': sum(exp.amount for exp in monthly_expenses)
+        })
+
+    chart_data['months'].reverse()
+
+    return render_template(
+        'expenses.html',
+        expenses=filtered_expenses,
+        total=total_expenses,
+        categories=categories,
+        budgets=budgets,
+        category_totals=category_totals,
+        chart_data=chart_data,
+        category_filter=category_filter,
+        time_filter=time_filter,
+        current_month=current_month,
+        current_year=current_year
+    )
+
+@app.route('/set_budget', methods=['POST'])
+def set_budget():
+    category_id = request.form.get('category_id')
+    amount = float(request.form.get('amount'))
+    today = datetime.today()
+
+    # Check if budget exists for this category/month/year
+    existing_budget = Budget.query.filter(
+        Budget.category_id == category_id,
+        Budget.month == today.month,
+        Budget.year == today.year
+    ).first()
+
+    if existing_budget:
+        existing_budget.amount = amount
+    else:
+        new_budget = Budget(
+            category_id=category_id,
+            amount=amount,
+            month=today.month,
+            year=today.year
+        )
+        db.session.add(new_budget)
+
+    db.session.commit()
+    return redirect(url_for('expenses'))
+
+@app.route('/add_expense', methods=['POST'])
+def add_expense():
+    description = request.form.get('description')
+    amount = float(request.form.get('amount'))
+    category_id = request.form.get('category_id')
+
+    new_expense = Expense(
+    description=description,
+    amount=amount,
+    category_id=category_id,
+    timestamp=datetime.now()  # Explicitly set current timestamp
+)
+    db.session.add(new_expense)
+    db.session.commit()
+    
+
+    # Recalculate category totals after adding the expense
+    today = datetime.today()
+    current_month = today.month
+    current_year = today.year
+    budgets = Budget.query.filter(
+        Budget.month == current_month,
+        Budget.year == current_year
+    ).all()
+
+    calculate_category_totals(budgets, current_month, current_year)
+
+    return redirect(url_for('expenses'))
 
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 def delete_expense(expense_id):
@@ -153,6 +335,26 @@ def delete_expense(expense_id):
     db.session.delete(expense)
     db.session.commit()
     return redirect(url_for('expenses'))
+
+@app.route('/init_categories')
+def init_categories():
+    categories = [
+        {'name': 'Food', 'color': '#FF6384'},
+        {'name': 'Transport', 'color': '#36A2EB'},
+        {'name': 'Entertainment', 'color': '#FFCE56'},
+        {'name': 'Utilities', 'color': '#4BC0C0'},
+        {'name': 'Shopping', 'color': '#9966FF'},
+        {'name': 'Health', 'color': '#FF9F40'},
+    ]
+
+    for cat in categories:
+        if not ExpenseCategory.query.filter_by(name=cat['name']).first():
+            new_cat = ExpenseCategory(name=cat['name'], color=cat['color'])
+            db.session.add(new_cat)
+
+    db.session.commit()
+    return redirect(url_for('expenses'))
+
 
 
 @app.route('/affirmations', methods=['GET', 'POST'])
@@ -353,6 +555,50 @@ def workouts():
     return render_template('workouts.html', workout=None)
 
 
+# Default nutrition goals
+DEFAULT_GOALS = {
+    'calories': 2000,
+    'protein': 150
+}
+
+@app.route('/nutrition', methods=['GET', 'POST'])
+def nutrition():
+    # Initialize session if empty
+    if 'meals' not in session:
+        session['meals'] = []
+        session['goals'] = {'calories': 2000, 'protein': 150}
+    
+    # Handle form submission
+    if request.method == 'POST':
+        session['meals'].append({
+            'food': request.form.get('food_name'),
+            'calories': int(request.form.get('calories', 0)),
+            'protein': int(request.form.get('protein', 0)),
+            'meal_type': request.form.get('meal_type'),
+            'time': datetime.now().strftime("%H:%M")
+        })
+        session.modified = True  # Force session save
+        return redirect(url_for('nutrition'))
+    
+    # Calculate totals
+    totals = {
+        'calories': sum(m['calories'] for m in session['meals']),
+        'protein': sum(m['protein'] for m in session['meals'])
+    }
+    
+    return render_template('nutrition.html',
+                        meals=session['meals'],
+                        totals={
+                            'calories': sum(m['calories'] for m in session['meals']),
+                            'protein': sum(m['protein'] for m in session['meals'])
+                        },
+                        goals={'calories': 2000, 'protein': 150})
+
+@app.route('/reset_nutrition')
+def reset_nutrition():
+    session['meals'] = []
+    session.modified = True
+    return redirect(url_for('nutrition'))
 
 # Schedule periodic reminders
 scheduler = BackgroundScheduler()
@@ -383,7 +629,7 @@ def send_reminder():
 
 
 #if __name__ == "__main__":
-   # with app.app_context():
-       #db.create_all()
-    #app.run(debug=True)
+ #   with app.app_context():
+  #      db.create_all()
+   # app.run(debug=True)
 

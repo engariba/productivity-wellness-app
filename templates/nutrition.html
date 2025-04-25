@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Food Tracker{% endblock %}
+
+{% block content %}
+<div class="nutrition-container">
+    <h1 class="page-header">
+        <i class="fas fa-utensils"></i> Food Tracker
+    </h1>
+
+    <!-- Daily Summary -->
+    <div class="nutrition-summary">
+        <div class="macro-card">
+            <h3>Calories</h3>
+            <div class="macro-progress">
+                <div class="macro-progress-fill" 
+                     style="--progress: {{ (totals.calories/goals.calories)*100 }}%">
+                    {{ totals.calories }} / {{ goals.calories }} kcal
+                </div>
+            </div>
+        </div>
+        <div class="macro-card">
+            <h3>Protein</h3>
+            <div class="macro-progress">
+                <div class="macro-progress-fill" 
+                     style="--progress: {{ (totals.protein/goals.protein)*100 }}%">
+                    {{ totals.protein }}g / {{ goals.protein }}g
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Food Form -->
+    <form method="POST" class="nutrition-form">
+        <div class="form-group">
+            <label>Meal Type</label>
+            <select name="meal_type" required>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Food Item</label>
+            <input type="text" name="food_name" placeholder="e.g., Chicken Salad" required>
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Calories</label>
+                <input type="number" name="calories" placeholder="kcal" min="0">
+            </div>
+            <div class="form-group">
+                <label>Protein (g)</label>
+                <input type="number" name="protein" placeholder="grams" min="0">
+            </div>
+        </div>
+        <button type="submit" class="btn">
+            <i class="fas fa-plus"></i> Add Food
+        </button>
+    </form>
+
+    <!-- Reset Button -->
+    <form>
+        <a href="{{ url_for('reset_nutrition') }}" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i> Reset Today's Log
+        </a>
+    </form>
+
+    <!-- Meal History -->
+    <div class="meal-history">
+        <h2><i class="fas fa-history"></i> Today's Food</h2>
+        {% if meals %}
+            {% for meal in meals %}
+            <div class="meal-card">
+                <div class="meal-header">
+                    <span class="meal-type">{{ meal.meal_type|capitalize }}</span>
+                    <span class="meal-time">{{ meal.time }}</span>
+                </div>
+                <div class="meal-content">
+                    <h3>{{ meal.food }}</h3>
+                    <div class="meal-macros">
+                        <span>{{ meal.calories }} kcal</span>
+                        <span>{{ meal.protein }}g protein</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No meals logged yet. Add your first meal above!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

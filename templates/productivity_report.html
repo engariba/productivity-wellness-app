@@ -4,25 +4,40 @@
 
 {% block content %}
 <div class="report-container">
-    <h1>📊 Productivity Report</h1>
+    <h1>📈 Productivity Report</h1>
     <p class="subtitle">Your actual task completion data</p>
     
     <div class="chart-grid">
-        <div id="chart1" class="chart-box"></div>
-        <div id="chart2" class="chart-box"></div>
+        <div class="chart-box">
+            <div id="chart1"></div>
+        </div>
+        <div class="chart-box">
+            <div id="chart2"></div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Simple Plotly implementation
+        // Make sure your chart data is properly formatted
         const chart1 = {{ chart1 | tojson | safe }};
         const chart2 = {{ chart2 | tojson | safe }};
         
-        Plotly.newPlot('chart1', chart1.data, chart1.layout);
-        Plotly.newPlot('chart2', chart2.data, chart2.layout);
+        // Initialize charts with responsive config
+        Plotly.newPlot('chart1', chart1.data, {
+            ...chart1.layout,
+            autosize: true,
+            height: 450
+        });
+        
+        Plotly.newPlot('chart2', chart2.data, {
+            ...chart2.layout,
+            autosize: true,
+            height: 450
+        });
         
         // Add resize handler
         window.addEventListener('resize', function() {

@@ -1,50 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Water Intake Tracker</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/script.js"></script>
-</head>
-<body>
-    {% include 'base.html' %}
-    <header>
-        <h1>Track Your Water Intake</h1>
-    </header>
-    <main>
-        <form action="/water_intake" method="post">
-            <label for="amount">Enter Water Intake (ml):</label>
-            <input type="number" id="amount" name="amount" placeholder="e.g., 250" required>
-            <button type="submit">Add</button>
-        </form>
-    
-        <section>
-            <h2>Water Intake History</h2>
-            <ul>
-                {% for record in records %}
-                <li>{{ record.timestamp }} - {{ record.amount }} ml</li>
-                {% endfor %}
-            </ul>
-        </section>
-        
-        <section>
-            <h2>Daily Water Progress</h2>
-            <div class="progress-bar">
-                <div 
-    class="progress-bar-fill" 
-    data-intake="{{ total_intake }}" 
-    data-goal="{{ daily_goal }}" 
-    style="--progress-width: {{ (total_intake / daily_goal) * 100 if daily_goal else 0 }}%;"
->
-    {{ (total_intake / daily_goal) * 100 | round(1) }}%
-</div>
+{% extends "base.html" %}
 
+{% block title %}Water Intake Tracker{% endblock %}
+
+{% block content %}
+<div class="water-container">
+    <!-- Header matching calendar/task style -->
+    <div class="page-header-container">
+        <h1 class="page-header">
+            <i class="fas fa-tint"></i> Water Intake Tracker
+        </h1>
+        <p class="page-subtitle">Track your daily hydration goals</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="card-grid">
+        <div class="card">
+            <div class="card-icon">💧</div>
+            <h3>Today's Intake</h3>
+            <div class="card-value">{{ total_intake }} ml</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">🎯</div>
+            <h3>Daily Goal</h3>
+            <div class="card-value">{{ daily_goal }} ml</div>
+        </div>
+    </div>
+
+    <!-- Form and buttons -->
+    <form method="POST" class="water-form">
+        <div class="form-group">
+            <label>Amount (ml)</label>
+            <input type="number" name="amount" placeholder="250" required>
+        </div>
+        <div class="water-button-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Entry
+            </button>
+            <button type="submit" formaction="{{ url_for('reset_water') }}" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Reset Today
+            </button>
+        </div>
+    </form>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-label">
+            <span>Hydration Progress</span>
+            <span>{{ (total_intake/daily_goal)*100|round(1) }}%</span>
+        </div>
+        <div class="water-progress-bar">
+            <div class="water-progress-fill" 
+                 style="width: {{ (total_intake/daily_goal)*100 }}%">
             </div>
-            <p>{{ total_intake }} ml of {{ daily_goal }} ml consumed today</p>
-        </section>
-    </main>
-    
-    
-</body>
-</html>
+        </div>
+    </div>
+
+    <!-- History matching task list style -->
+    <div class="history-section">
+        <h2 class="section-header">
+            <i class="fas fa-history"></i> Today's Log
+        </h2>
+        {% if records %}
+        <ul class="history-list">
+            {% for record in records %}
+            <li class="history-item">
+                <span class="item-time">{{ record.timestamp.strftime('%H:%M') }}</span>
+                <span class="item-amount">{{ record.amount }} ml</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-message">No entries yet. Add your first intake!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
