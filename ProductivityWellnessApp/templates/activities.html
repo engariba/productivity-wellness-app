@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logger</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <header>
+        <h1>Activity Logger</h1>
+    </header>
+    <main>
+        <form action="/activities" method="post">
+            <input type="text" name="activity_type" placeholder="Activity Type (e.g., Running)" required="duration" placeholder="Duration (minutes)" required>
+            <input type="date" name="date" required>
+            <button type="submit">Log Activity</button>
+        </form>
+        <section class="activity-log">
+            <h2>Activity Log</h2>
+            <ul>
+                {% for activity in activities %}
+                <li>{{ activity.date }} - {{ activity.activity_type }}: {{ activity.duration }} minutes</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

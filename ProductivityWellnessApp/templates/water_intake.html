@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Intake Tracker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <header>
+        <h1>Track Your Water Intake</h1>
+    </header>
+    <main>
+        <form action="/water_intake" method="post">
+            <label for="amount">Enter Water Intake (ml):</label>
+            <input type="number" id="amount" name="amount" placeholder="e.g., 250" required>
+            <button type="submit">Add</button>
+        </form>
+    
+        <section>
+            <h2>Water Intake History</h2>
+            <ul>
+                {% for record in records %}
+                <li>{{ record.timestamp }} - {{ record.amount }} ml</li>
+                {% endfor %}
+            </ul>
+        </section>
+        
+        <section>
+            <h2>Daily Water Progress</h2>
+            <div class="progress-bar">
+                <div 
+    class="progress-bar-fill" 
+    data-intake="{{ total_intake }}" 
+    data-goal="{{ daily_goal }}" 
+    style="--progress-width: {{ (total_intake / daily_goal) * 100 if daily_goal else 0 }}%;"
+>
+    {{ (total_intake / daily_goal) * 100 | round(1) }}%
+</div>
+
+            </div>
+            <p>{{ total_intake }} ml of {{ daily_goal }} ml consumed today</p>
+        </section>
+    </main>
+    
+    
+</body>
+</html>

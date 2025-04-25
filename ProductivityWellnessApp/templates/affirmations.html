@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Affirmations</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <header>
+        <h1>Manage Affirmations</h1>
+    </header>
+    <main>
+        <form action="/affirmations" method="post">
+            <input type="text" name="message" placeholder="Enter a new affirmation" required>
+            <button type="submit">Add Affirmation</button>
+        </form>
+        <section class="saved-affirmations">
+            <h2>Saved Affirmations</h2>
+            <ul>
+                {% for affirmation in affirmations %}
+                <li>{{ affirmation.message }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

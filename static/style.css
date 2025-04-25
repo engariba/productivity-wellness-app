@@ -1,15 +1,21 @@
-/* Global Styles */
+/* Global Styles 
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f6f9;
     line-height: 1.6;
 }
+*/
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: url('/static/images/dashboard-bg3.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
 
 /* Header */
 header {
-    background-color: #007BFF;
+   /* background-color: #007BFF;*/
     color: white;
     padding: 20px;
     text-align: center;
@@ -22,20 +28,56 @@ header h1 {
 
 /* Navigation */
 nav {
-    background-color: #0056b3;
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(135deg, #007BFF, #0056b3);
     padding: 10px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-nav a {
-    margin: 0 15px;
-    text-decoration: none;
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(135deg, #2a3f5f, #0056b3);
     color: white;
-    font-weight: bold;
-    transition: color 0.3s;
+    padding: 20px;
 }
-nav a:hover {
-    color: #ffdd57;
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    padding: 12px;
+    text-align: left;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: rgb(20, 12, 133);
+    font-size: 18px;
+    transition: background-color 0.3s;
+}
+
+.sidebar ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.sidebar ul li a i {
+    font-size: 20px;
 }
 
 /* Main Content */
@@ -166,4 +208,51 @@ form label {
     line-height: 20px;
     border-radius: 20px;
     transition: width 0.3s ease-in-out;
+}
+
+/* Dashboard*/
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background: whitesmoke;
+    color: #333; /* Darker text for better contrast */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+    text-align: center;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+    color: #007BFF;
+}
+
+.card a {
+    display: block;
+    margin-top: 10px;
+    padding: 8px;
+    background: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.card a:hover {
+    background: #0056b3;
+}
+
+main {
+    margin-left: 270px; /* Push content to the right */
+    padding: 20px;
 }
